@@ -60,6 +60,9 @@ public class GlobalComplexCostLogger<V extends DataType<V>> extends AgentLogger<
 			parameters.put(OptimizationFactor.W_M,moagent.getPriceWeight());
 			parameters.put(OptimizationFactor.W_P,moagent.getPreferenceWeight());
 			parameters.put(OptimizationFactor.W_T,moagent.getQueueWeight());
+			parameters.put(OptimizationFactor.W_I,moagent.getIncentiveRate());
+			parameters.put(OptimizationFactor.LOCAL_COST,moagent.getOptimization().localCost);
+			parameters.put(OptimizationFactor.INCENTIVE_SIGNAL,moagent.getOptimization().incentiveSignal);
             double cost = Configuration.planOptimizationFunction.apply(parameters);
             
             Token token = new Token(cost, agent.getIteration(), this.run);            

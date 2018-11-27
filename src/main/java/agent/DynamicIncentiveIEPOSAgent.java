@@ -53,6 +53,7 @@ public class DynamicIncentiveIEPOSAgent<V extends DataType<V>> extends Iterative
     double 												w_m;
     double 												w_p;
     double 												w_t;
+    double 												w_i;
     double												gamma;
     double												delta;
     PlanSelector<DynamicIncentiveIEPOSAgent<V>, V> 		planSelector;
@@ -110,6 +111,10 @@ public class DynamicIncentiveIEPOSAgent<V extends DataType<V>> extends Iterative
     public void setQueueWeight(double w_t) {
         this.w_t = w_t;
     }
+
+    public void setIncentiveRate(double w_i) {
+        this.w_i = w_i;
+    }
     
     public double getLocalCostWeight() {
     	return this.beta;
@@ -129,6 +134,10 @@ public class DynamicIncentiveIEPOSAgent<V extends DataType<V>> extends Iterative
 
     public double getQueueWeight() {
         return this.w_t;
+    }
+
+    public double getIncentiveRate() {
+        return this.w_i;
     }
 
     /**
@@ -442,9 +451,8 @@ public class DynamicIncentiveIEPOSAgent<V extends DataType<V>> extends Iterative
         }
         
         this.log(Level.FINER, "aggregate:");
-        if(this.isLeaf()) {
-        	
-        } else {
+        if(this.isLeaf()) { }
+        else {
         	if(!this.prevSubtreeDiscomfortSum.isEmpty()) {
         		
 //        		if(this.getPeer().getIndexNumber() == 189) {

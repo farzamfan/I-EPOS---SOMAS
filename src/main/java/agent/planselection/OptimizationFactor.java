@@ -19,7 +19,9 @@ public enum OptimizationFactor {
 	W_M,
 	W_P,
 	W_T,
+	W_I,
 	DISCOMFORT_SUM,
 	DISCOMFORT_SUM_SQR,
-	NUM_AGENTS
+	NUM_AGENTS,
+	INCENTIVE_SIGNAL
 }

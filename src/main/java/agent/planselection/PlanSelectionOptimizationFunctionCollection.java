@@ -1,6 +1,7 @@
 package agent.planselection;
 
 import java.util.HashMap;
+import java.util.Spliterator;
 
 import org.apache.commons.math3.exception.NotANumberException;
 
@@ -98,9 +99,9 @@ public class PlanSelectionOptimizationFunctionCollection {
 		return (1 - alpha - beta) * global_cost + alpha * unfairness + beta * local_cost;
 	};
 
-	public static double incentivizedLocalCost(double discomfortSum, double numAgents, double w_m, double w_p, double w_t)
+	public static double incentivizedLocalCost(double localcost, double incentiveSignal, double w_m, double w_p, double w_t, double w_i)
 	{
-	    return w_m * (discomfortSum/numAgents) - w_p * (0) + w_t * (0);
+		return w_m * (localcost - w_i*incentiveSignal*localcost)/2 - w_p * (0) + w_t * (0);
 	}
 
 	public static PlanSelectionOptimizationFunction incentiveFunction = (HashMap<OptimizationFactor, Object> map) -> {
@@ -109,20 +110,20 @@ public class PlanSelectionOptimizationFunctionCollection {
 		double w_m              =   (double)    map.get(OptimizationFactor.W_M);
         double w_p              =   (double)    map.get(OptimizationFactor.W_P);
         double w_t              =   (double)    map.get(OptimizationFactor.W_T);
+        double w_i              =   (double)    map.get(OptimizationFactor.W_I);
 		double discomfortSum	=	(double)	map.get(OptimizationFactor.DISCOMFORT_SUM);
 		double discomfortSumSqr =	(double)	map.get(OptimizationFactor.DISCOMFORT_SUM_SQR);
+		double localCost		= 	(double)	map.get(OptimizationFactor.LOCAL_COST);
+		double incentiveSignal	=	(double)	map.get(OptimizationFactor.INCENTIVE_SIGNAL);
 		double global_cost		=	(double)	map.get(OptimizationFactor.GLOBAL_COST);
 		double numAgents		=	(double)	map.get(OptimizationFactor.NUM_AGENTS);
 
-		double local_cost		=	incentivizedLocalCost(discomfortSum, numAgents, w_m, w_p, w_t);
+		double local_cost		=	incentivizedLocalCost(localCost, incentiveSignal, w_m, w_p, w_t, w_i);
 		double unfairness		=	unfairness(discomfortSum, discomfortSumSqr, numAgents);
 
 		if(Double.isNaN(unfairness)) {
 			throw new NotANumberException();
 		}
-//		System.out.println("discomfortSum = " + discomfortSum + ", discomfortSumSqr = " + discomfortSumSqr);
-//		System.out.println("global cost = " + global_cost + ", unfairness = " + unfairness + ", local cost = " + local_cost + ", num agents = " + numAgents);
-//		System.out.println("alpha = " + alpha + ", beta = " + beta + ", returning: " + ((1 - alpha - beta) * global_cost + alpha * unfairness + beta * local_cost));
 		return (1 - alpha - beta) * global_cost + alpha * unfairness + beta * local_cost;
 	};
 

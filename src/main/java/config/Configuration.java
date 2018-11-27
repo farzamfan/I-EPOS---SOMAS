@@ -114,6 +114,7 @@ public class Configuration {
 	public static Supplier<Vector> goalSignalSupplier = null;
 	public static UnaryOperator<Vector> normalizer = Vector.standard_normalization;
 	public static PlanSelectionOptimizationFunction planOptimizationFunction = PlanSelectionOptimizationFunctionCollection.incentiveFunction;
+	public static PlanSelectionOptimizationFunction combinationOptimizationFunction = PlanSelectionOptimizationFunctionCollection.complexFunction1;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	// SEEDS:

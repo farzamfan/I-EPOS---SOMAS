@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.DoubleToIntFunction;
 import java.util.function.Function;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -152,6 +153,7 @@ public class IEPOSExperiment {
 				newAgent.setPriceWeight(Double.parseDouble(config.weights[2]));
 				newAgent.setPreferenceWeight(Double.parseDouble(config.weights[3]));
 				newAgent.setQueueWeight(Double.parseDouble(config.weights[4]));
+				newAgent.setIncentiveRate(Double.parseDouble(config.weights[5]));
 				newAgent.setPlanSelector(planSelector);
 				return newAgent;
 

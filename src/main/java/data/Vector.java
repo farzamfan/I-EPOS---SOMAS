@@ -17,6 +17,7 @@
  */
 package data;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -48,18 +49,18 @@ public class Vector implements DataType<Vector> {
     public Vector(int numDimensions) {
         values = new double[numDimensions];
     }
-    
+
     public Vector(double[] values) {
         this.values = values;
     }
-    
+
     @Override
     public Vector getValue() {
         return this;
     }
 
     /**
-     * 
+     *
      * @param idx - position in vector, user must ensure for idx < numDimensions
      * @param value - value to be set on position idx
      */
@@ -68,7 +69,7 @@ public class Vector implements DataType<Vector> {
     }
 
     /**
-     * 
+     *
      * @param idx - position from which to read value, user must ensure that idx < numDimensions
      * @return double value stored at position idx in vector
      */
@@ -81,7 +82,7 @@ public class Vector implements DataType<Vector> {
     }
 
     /**
-     * 
+     *
      * @return sum of all values in vector
      */
     public double sum() {
@@ -345,7 +346,7 @@ public class Vector implements DataType<Vector> {
     }
 
     /**
-     * In-place multiplication of every element of 'vector' by 'factor' 
+     * In-place multiplication of every element of 'vector' by 'factor'
      * @param factor
      */
     public void multiply(double factor) {
@@ -388,7 +389,7 @@ public class Vector implements DataType<Vector> {
 
         return avg.values;
     }
-    
+
     /**
      * Computes element-wise mean of vectors from the list by using this.add(vectors) and then this.multiply(1/vectors.size())
      * @param vectors - user must ensure that all vectors in the list are of equal size
@@ -403,7 +404,7 @@ public class Vector implements DataType<Vector> {
 
         return avg;
     }
-    
+
     /**
      * Computes residual sum of squares via function:
      * 		RSS = SUM{ (v[i] - u[i])^2 | i = 0, ..., v.numDimensions() }
@@ -489,7 +490,7 @@ public class Vector implements DataType<Vector> {
         }
         return clone;
     }
-   
+
     @Override
     public Vector cloneNew() {
         Vector clone = null;
@@ -530,10 +531,10 @@ public class Vector implements DataType<Vector> {
         out.append(']');
         return out.toString();
     }
-    
+
     //////////////////////////////////////////////////////////////////////////////////////////////////
     /// BY JOVAN:
-    
+
     public Complex[] convert2complex() {
     	Complex[] complex = new Complex[this.values.length];
     	IntStream.range(0, this.values.length).forEach(i -> {
@@ -541,17 +542,17 @@ public class Vector implements DataType<Vector> {
     		complex[i] = c;
     	});
     	return complex;
-    }    
-    
+    }
+
     /**
      * Computes Forward Fourier Transformation of given signal in time domain.
-     * Note that it uses UNITARY transformation which preserves value of inner product 
+     * Note that it uses UNITARY transformation which preserves value of inner product
      * before and after transformation.
      * @param other time signal
      * @return array of Complex values representing Fourier Transformation
      */
     public static Complex[] forwardFourierTransform(Vector other) {
-    	FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.UNITARY);    	
+    	FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.UNITARY);
     	// TODO does transform change given array???
     	int newlength = other.getNumDimensions() <= 128 ? 128 : 256;
     	double[] newarray = new double[newlength];
@@ -565,7 +566,7 @@ public class Vector implements DataType<Vector> {
     	Complex[] result = fft.transform(newarray, TransformType.FORWARD);
     	return result;
     }
-    
+
     /**
      * Computes inverse Fourier Transformation of given signal in frequency domain.
      * Note that it uses UNITARY transformation which preserves values of inner product
@@ -574,8 +575,8 @@ public class Vector implements DataType<Vector> {
      * @return array of Complex values representing signal in time domain
      */
     public static Complex[] inverseFourierTransform(Complex[] complex) {
-    	FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.UNITARY);    	
-    	
+    	FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.UNITARY);
+
     	int newlength = complex.length <= 128 ? 128 : 256;
     	Complex[] newarray = new Complex[newlength];
     	for(int i = 0; i < newlength; i++) {
@@ -584,16 +585,16 @@ public class Vector implements DataType<Vector> {
     		} else {
     			newarray[i] = new Complex(0);
     		}
-    	}    	
-    	
+    	}
+
     	Complex[] result = fft.transform(newarray, TransformType.INVERSE);
     	return result;
     }
-    
+
     /**
      * For now, it just takes the real part of every complex number.
-     * Note that our time signals are given only in real domcomplexain. 
-     * Applying Fourier transform on real time signal, and then applying 
+     * Note that our time signals are given only in real domcomplexain.
+     * Applying Fourier transform on real time signal, and then applying
      * inverse Fourier transform on this signal in frequency domain should preserve
      * the original signal.
      * @param complex signal in time domain represented as array of complex numbers
@@ -606,11 +607,11 @@ public class Vector implements DataType<Vector> {
     	}
     	return v;
     }
-    
+
     /**
      * For now, it just takes the modulus of every complex number.
-     * Note that our time signals are given only in real domain. 
-     * Applying Fourier transform on real time signal, and then applying 
+     * Note that our time signals are given only in real domain.
+     * Applying Fourier transform on real time signal, and then applying
      * inverse Fourier transform on this signal in frequency domain should preserve
      * the original signal.
      * If complex number x = a + b*j, then modulus = sqrt(a^2 + b^2), where j = sqrt(-1)
@@ -624,19 +625,19 @@ public class Vector implements DataType<Vector> {
     	}
     	return v;
     }
-    
+
     /**
-     * Cross-correlation of 2 signals in time domain x(t) and y(t) translates to the following 
+     * Cross-correlation of 2 signals in time domain x(t) and y(t) translates to the following
      * in frequency domain:
      *                       F[x(t) * y(t)] = ~X Y
      * where F[] is Fourier transform, * is cross-correlation operator and ~X is complex conjugate of X.
      * In other words, Fourier transform  of cross-correlation of 2 signals represents product of complex cojugate
      * Fourier transform of one signal and Fourier transform of the other signal.
-     * 
+     *
      * Note that this method conjugates the first signal!.
-     * 
+     *
      * @param X Fourier transform of first signal
-     * @param y Fourier transform of second signal
+     * //@param y Fourier transform of second signal
      * @return Cross correlation of 2 signals in frequency domain
      */
     public static Complex[] crossCorrelationInFrequencyDomain(Complex[] X, Complex[] Y) {
@@ -646,21 +647,21 @@ public class Vector implements DataType<Vector> {
     	Complex[] result = new Complex[X.length];
     	for(int i = 0; i < X.length; i++) {
     		result[i] = X[i].conjugate().multiply(Y[i]);
-    	}    	
+    	}
     	return result;
     }
-    
+
     /**
      * Applies Student's t-statistics for "standardization" of data.
      * It converts value x_i to (x_i - x_mean)/x_std
      * where x_mean is the mean of the vector and x_std is standard deviation of the vector
-     * 
-     * For numerical stability, small constant 1e-10 is added to the denominator in 
+     *
+     * For numerical stability, small constant 1e-10 is added to the denominator in
      * case that deviation is 0.
-     * 
+     *
      * As a result all values have zero mean and unit variance.
      * @return normalized vector
-     */    
+     */
     public static UnaryOperator<Vector> standard_normalization = (Vector v) -> {
     	Vector normalized = new Vector(v.getNumDimensions());
     	double mean = v.avg();
@@ -670,12 +671,12 @@ public class Vector implements DataType<Vector> {
     	}
     	return normalized;
     };
-    
+
     /**
      * Applies min-max scaling known also as "feature scaling".
      * The formula is (x_i - x_min)/(x_max - x_min)
      * where x_min is the minimal and x_max the maximal value in the signal.
-     * 
+     *
      * As a result all values are in range [0,1]
      * @return normalized vector
      */
@@ -688,11 +689,11 @@ public class Vector implements DataType<Vector> {
     	}
     	return normalized;
     };
-    
+
     /**
      * Applies unit length normalization which scales the signal
      * to have length of 1 (in Euclidean space).
-     * 
+     *
      * Implements function x_i / ||x||
      * where ||x|| is L-2 norm.
      * @return
@@ -705,10 +706,10 @@ public class Vector implements DataType<Vector> {
     	}
     	return normalized;
     };
-    
+
     /**
      * Creates a new vector with exactly the same values as provided vector.
-     * Can be used in cases 
+     * Can be used in cases
      */
     public static UnaryOperator<Vector> no_normalization = (Vector v) -> {
     	Vector normalized = new Vector(v.getNumDimensions());
@@ -721,6 +722,12 @@ public class Vector implements DataType<Vector> {
 	public double[] getValues() {
 		return values;
 	}
-    
-    
+
+    public int find(double value) {
+        int index = -1;
+	    for(int i=0; i<values.length; i++)
+            if(values[i] == value)
+                index = i;
+        return index;
+    }
 }

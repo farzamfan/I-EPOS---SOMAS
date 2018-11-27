@@ -58,7 +58,7 @@ public class DynamicIncentivePlanSelector<V extends DataType<V>> implements Plan
         int id =  agent.getOptimization().argmin(agent.getGlobalCostFunction(), 
         									  agent.getLocalCostFunction(),
         									  agent.getPossiblePlans(), 
-        									  otherResponse, 
+        									  otherResponse, //global response, including prelSubTreeResponse and prelAggregatedResponse
         									  agent.getUnfairnessWeight(),
         									  agent.getLocalCostWeight(),
         									  currentDiscomfortSum,
@@ -67,10 +67,10 @@ public class DynamicIncentivePlanSelector<V extends DataType<V>> implements Plan
         									  agent,
                                               agent.getPriceWeight(),
                                               agent.getPreferenceWeight(),
-                                              agent.getQueueWeight());
+                                              agent.getQueueWeight(),
+                                              agent.getIncentiveRate());
         
 //        System.out.println("agent: " + agent.getPeer().getIndexNumber() + " Chosen id is: " + id);
-        
         return id;
     }
 

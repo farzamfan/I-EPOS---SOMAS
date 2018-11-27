@@ -7,13 +7,11 @@ package agent;
 
 import data.HasValue;
 import data.Plan;
+import data.Vector;
 import func.CostFunction;
 import func.PlanCostFunction;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import agent.planselection.OptimizationFactor;
@@ -28,6 +26,8 @@ import jdk.nashorn.internal.runtime.regexp.joni.constants.OPCode;
 public class Optimization {
 
     protected Random random;
+    public double incentiveSignal=0;
+    public double localCost=0;
 
     public Optimization(Random random) {
         this.random = random;
@@ -222,7 +222,8 @@ public class Optimization {
 			discomfortSumSqrs[i] = discomfortSumSqrConst + discomfortSumSqrCombos.get(i);
 		});
 
-		return this.extendedOptimization(costs, alpha, beta, discomfortSums, discomfortSumSqrs, numAgents,0,0,0);
+		// TODO: 26.11.18
+		return this.extendedOptimization(costs, alpha, beta, discomfortSums, discomfortSumSqrs, numAgents);
     }
     
     /**
@@ -245,12 +246,13 @@ public class Optimization {
 			double alpha,						double beta,
 			double discomfortSumConstant,		double discomfortSumSqrConstant,	
 			int numAgents, 						DynamicIncentiveIEPOSAgent agent,
-            double w_m,     double w_p,         double w_i)
+            double w_m,     double w_p,         double w_t,     double w_i)
     {
 
 		double[] costs = new double[choices.size()];
 		double[] discomfortSums = new double[choices.size()];
 		double[] discomfortSumSqrs = new double[choices.size()];
+
 
 		IntStream.range(0, choices.size()).forEach(i -> {
 			V combined;
@@ -260,42 +262,90 @@ public class Optimization {
 			} else {
 				combined = choices.get(i).getValue();
 			}
-			double cost = costFunction.calcCost(combined);
+			double cost = costFunction.calcCost(combined.getValue());
 
-			costs[i] = cost;
+			costs[i] = cost; //choices is the local plan, this shows the effect of a local plan on global cost
 			double score = localCostFunction.calcCost(choices.get(i));
 			discomfortSums[i] = discomfortSumConstant + score;
 			discomfortSumSqrs[i] = discomfortSumSqrConstant + score*score;
-			//System.out.print("agent: " + agent.getPeer().getIndexNumber() + ", SumConst = " + discomfortSumConstant + ", Sum2const = " + discomfortSumSqrConstant);
-			//System.out.println("Sum is " + discomfortSums[i] + ", sum^2 is " + discomfortSumSqrs[i] + ", num agents = " + numAgents);
 		});
-
-		return this.extendedOptimization(costs, alpha, beta, discomfortSums, discomfortSumSqrs, numAgents, w_m, w_p, w_i);
+		return this.extendedOptimization(costs, choices, localCostFunction, constant, alpha, beta, discomfortSums, discomfortSumSqrs, numAgents, w_m, w_p, w_t, w_i);
 
     }
-    
+
+    //for combination selection
     private <V extends DataType<V>> int extendedOptimization(double[] costs,				double alpha,
-			 												 double beta,					double[] discomfortSums, 
-			 												 double[] discomfortSumSqrs,	double numAgents,
-                                                             double w_m,     double w_p,         double w_t) {
+                                                             double beta,					double[] discomfortSums,
+                                                             double[] discomfortSumSqrs,	double numAgents) {
+
+        double minCost = Double.POSITIVE_INFINITY;
+        int selected = -1;
+        int numOpt = 0;
+
+        try {
+            for(int i = 0; i < costs.length; i++) {
+                double cost = costs[i];
+                if(alpha > 0 || beta > 0) { //if you dont care about local cost
+                    HashMap<OptimizationFactor, Object> parameters = new HashMap<OptimizationFactor, Object>();
+                    parameters.put(OptimizationFactor.GLOBAL_COST, costs[i]);
+                    parameters.put(OptimizationFactor.DISCOMFORT_SUM, discomfortSums[i]);
+                    parameters.put(OptimizationFactor.DISCOMFORT_SUM_SQR, discomfortSumSqrs[i]);
+                    parameters.put(OptimizationFactor.ALPHA, alpha);
+                    parameters.put(OptimizationFactor.BETA, beta);
+                    parameters.put(OptimizationFactor.NUM_AGENTS, numAgents);
+                    cost = Configuration.combinationOptimizationFunction.apply(parameters);
+                }
+
+                if (cost < minCost) {
+                    minCost = cost;
+                    selected = i;
+                    numOpt = 1;
+                } else if (cost == minCost) {
+                    numOpt++;
+                    if (random.nextDouble() <= 1.0 / numOpt) {
+                        selected = i;
+                    }
+                }
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return selected;
+    }
+
+    //for local plan selection
+    private <V extends DataType<V>> int extendedOptimization(double[] costs,				List<Plan<V>> localPlans,           PlanCostFunction<V> localCostFunction,
+                                                             V prelAgg,
+                                                             double alpha,                  double beta,
+                                                             double[] discomfortSums,       double[] discomfortSumSqrs,
+                                                             double numAgents,              double w_m,     double w_p,         double w_t,     double w_i) {
 
 			double minCost = Double.POSITIVE_INFINITY;
 			int selected = -1;
 			int numOpt = 0;
-			
+			Vector goalSignal = Configuration.goalSignalSupplier.get();
+
 			try {
 				for(int i = 0; i < costs.length; i++) {
 					double cost = costs[i];
-					if(alpha > 0 || beta > 0) {
+					if(alpha > 0 || beta > 0) {//if you dont care about local cost
+
+					    int index = ((Vector) localPlans.get(i).getValue()).find(1.0);
+					    incentiveSignal = (goalSignal.getValue(index) - ( (Vector) prelAgg).getValue(index)) / Math.max(Math.max(goalSignal.getValue(index),( (Vector) prelAgg).getValue(index)),0.1);
+					    localCost = localCostFunction.calcCost(localPlans.get(i));
+
 						HashMap<OptimizationFactor, Object> parameters = new HashMap<OptimizationFactor, Object>();
 						parameters.put(OptimizationFactor.GLOBAL_COST, costs[i]);
 						parameters.put(OptimizationFactor.DISCOMFORT_SUM, discomfortSums[i]);
 						parameters.put(OptimizationFactor.DISCOMFORT_SUM_SQR, discomfortSumSqrs[i]);
+						parameters.put(OptimizationFactor.LOCAL_COST, localCost);
+                        parameters.put(OptimizationFactor.INCENTIVE_SIGNAL,incentiveSignal);
 						parameters.put(OptimizationFactor.ALPHA, alpha);
 						parameters.put(OptimizationFactor.BETA, beta);
 						parameters.put(OptimizationFactor.W_M,w_m);
                         parameters.put(OptimizationFactor.W_P,w_p);
                         parameters.put(OptimizationFactor.W_T,w_t);
+                        parameters.put(OptimizationFactor.W_I,w_i);
 						parameters.put(OptimizationFactor.NUM_AGENTS, numAgents);
 						cost = Configuration.planOptimizationFunction.apply(parameters);
 					}
