@@ -54,6 +54,7 @@ public class DynamicIncentiveIEPOSAgent<V extends DataType<V>> extends Iterative
     double 												w_p;
     double 												w_t;
     double 												w_i;
+    double[]                                            preference;
     double												gamma;
     double												delta;
     PlanSelector<DynamicIncentiveIEPOSAgent<V>, V> 		planSelector;
@@ -115,6 +116,8 @@ public class DynamicIncentiveIEPOSAgent<V extends DataType<V>> extends Iterative
     public void setIncentiveRate(double w_i) {
         this.w_i = w_i;
     }
+
+    public void setPreference (double[] pref) {this.preference = pref;}
     
     public double getLocalCostWeight() {
     	return this.beta;
@@ -139,6 +142,8 @@ public class DynamicIncentiveIEPOSAgent<V extends DataType<V>> extends Iterative
     public double getIncentiveRate() {
         return this.w_i;
     }
+
+    public double[] getPreference() { return this.preference;}
 
     /**
      * An I-EPOS agent can have different strategies for plan selection. The

@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 
 import agent.Agent;
 import agent.DynamicIncentiveIEPOSAgent;
+import agent.Optimization;
 import agent.planselection.OptimizationFactor;
 import config.Configuration;
 import data.DataType;
@@ -63,6 +64,8 @@ public class GlobalComplexCostLogger<V extends DataType<V>> extends AgentLogger<
 			parameters.put(OptimizationFactor.W_I,moagent.getIncentiveRate());
 			parameters.put(OptimizationFactor.LOCAL_COST,moagent.getOptimization().localCost);
 			parameters.put(OptimizationFactor.INCENTIVE_SIGNAL,moagent.getOptimization().incentiveSignal);
+			parameters.put(OptimizationFactor.PREFERENCE,moagent.getOptimization().preference);
+			parameters.put(OptimizationFactor.QUEUE,moagent.getOptimization().queue);
             double cost = Configuration.planOptimizationFunction.apply(parameters);
             
             Token token = new Token(cost, agent.getIteration(), this.run);            

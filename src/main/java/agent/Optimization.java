@@ -12,12 +12,14 @@ import func.CostFunction;
 import func.PlanCostFunction;
 
 import java.util.*;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 import agent.planselection.OptimizationFactor;
 import config.Configuration;
 import data.DataType;
 import jdk.nashorn.internal.runtime.regexp.joni.constants.OPCode;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -28,6 +30,8 @@ public class Optimization {
     protected Random random;
     public double incentiveSignal=0;
     public double localCost=0;
+    public double preference=0;
+    public double queue=0;
 
     public Optimization(Random random) {
         this.random = random;
@@ -269,7 +273,7 @@ public class Optimization {
 			discomfortSums[i] = discomfortSumConstant + score;
 			discomfortSumSqrs[i] = discomfortSumSqrConstant + score*score;
 		});
-		return this.extendedOptimization(costs, choices, localCostFunction, constant, alpha, beta, discomfortSums, discomfortSumSqrs, numAgents, w_m, w_p, w_t, w_i);
+		return this.extendedOptimization(costs, choices, localCostFunction, constant, alpha, beta, discomfortSums, discomfortSumSqrs, numAgents, w_m, w_p, w_t, w_i, agent.preference);
 
     }
 
@@ -318,7 +322,7 @@ public class Optimization {
                                                              V prelAgg,
                                                              double alpha,                  double beta,
                                                              double[] discomfortSums,       double[] discomfortSumSqrs,
-                                                             double numAgents,              double w_m,     double w_p,         double w_t,     double w_i) {
+                                                             double numAgents,              double w_m,     double w_p,         double w_t,     double w_i,     double[] pref) {
 
 			double minCost = Double.POSITIVE_INFINITY;
 			int selected = -1;
@@ -332,7 +336,9 @@ public class Optimization {
 
 					    int index = ((Vector) localPlans.get(i).getValue()).find(1.0);
 					    incentiveSignal = (goalSignal.getValue(index) - ( (Vector) prelAgg).getValue(index)) / Math.max(Math.max(goalSignal.getValue(index),( (Vector) prelAgg).getValue(index)),0.1);
+                        queue = Math.max( (goalSignal.getValue(index) - ( (Vector) prelAgg).getValue(index)) / Math.max(Math.max(goalSignal.getValue(index),( (Vector) prelAgg).getValue(index)),0.01) ,0);
 					    localCost = localCostFunction.calcCost(localPlans.get(i));
+					    preference = 1/(pref[Arrays.asList(ArrayUtils.toObject(pref)).indexOf(Double.valueOf( (index/36)+1 ))]);
 
 						HashMap<OptimizationFactor, Object> parameters = new HashMap<OptimizationFactor, Object>();
 						parameters.put(OptimizationFactor.GLOBAL_COST, costs[i]);
@@ -346,7 +352,9 @@ public class Optimization {
                         parameters.put(OptimizationFactor.W_P,w_p);
                         parameters.put(OptimizationFactor.W_T,w_t);
                         parameters.put(OptimizationFactor.W_I,w_i);
+                        parameters.put(OptimizationFactor.PREFERENCE,preference);
 						parameters.put(OptimizationFactor.NUM_AGENTS, numAgents);
+						parameters.put(OptimizationFactor.QUEUE,queue);
 						cost = Configuration.planOptimizationFunction.apply(parameters);
 					}
 				

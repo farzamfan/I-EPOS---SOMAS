@@ -3,6 +3,7 @@ package agent.planselection;
 import java.util.HashMap;
 import java.util.Spliterator;
 
+import agent.Optimization;
 import org.apache.commons.math3.exception.NotANumberException;
 
 
@@ -99,9 +100,12 @@ public class PlanSelectionOptimizationFunctionCollection {
 		return (1 - alpha - beta) * global_cost + alpha * unfairness + beta * local_cost;
 	};
 
-	public static double incentivizedLocalCost(double localcost, double incentiveSignal, double w_m, double w_p, double w_t, double w_i)
+	public static double incentivizedLocalCost(double localcost, double incentiveSignal, double w_m, double w_p, double w_t, double w_i, double pref, double queue)
 	{
-		return w_m * (localcost - w_i*incentiveSignal*localcost)/2 - w_p * (0) + w_t * (0);
+//        System.out.println("LC:"+localcost+" IS:"+incentiveSignal+" pref:"+pref+" w_m,w_t,w_p,w_t,w_i:"+w_m+" "+w_t+" "+w_p+" "+w_i);
+//        System.out.println(w_m * (localcost - w_i*incentiveSignal*localcost)/(2*localcost) - w_p * (pref) + w_t * (0));
+//        System.out.println("--");
+	    return w_m * (localcost - w_i*incentiveSignal*localcost)/2 - w_p * (pref) + w_t * (queue);
 	}
 
 	public static PlanSelectionOptimizationFunction incentiveFunction = (HashMap<OptimizationFactor, Object> map) -> {
@@ -114,11 +118,13 @@ public class PlanSelectionOptimizationFunctionCollection {
 		double discomfortSum	=	(double)	map.get(OptimizationFactor.DISCOMFORT_SUM);
 		double discomfortSumSqr =	(double)	map.get(OptimizationFactor.DISCOMFORT_SUM_SQR);
 		double localCost		= 	(double)	map.get(OptimizationFactor.LOCAL_COST);
+		double pref				= 	(double)	map.get(OptimizationFactor.PREFERENCE);
 		double incentiveSignal	=	(double)	map.get(OptimizationFactor.INCENTIVE_SIGNAL);
 		double global_cost		=	(double)	map.get(OptimizationFactor.GLOBAL_COST);
 		double numAgents		=	(double)	map.get(OptimizationFactor.NUM_AGENTS);
+		double queue            =   (double)    map.get(OptimizationFactor.QUEUE);
 
-		double local_cost		=	incentivizedLocalCost(localCost, incentiveSignal, w_m, w_p, w_t, w_i);
+		double local_cost		=	incentivizedLocalCost(localCost, incentiveSignal, w_m, w_p, w_t, w_i, pref, queue);
 		double unfairness		=	unfairness(discomfortSum, discomfortSumSqr, numAgents);
 
 		if(Double.isNaN(unfairness)) {

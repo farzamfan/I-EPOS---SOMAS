@@ -4,7 +4,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.*;
 import java.util.function.DoubleToIntFunction;
 import java.util.function.Function;
 import java.util.logging.Handler;
@@ -117,6 +117,27 @@ public class IEPOSExperiment {
 			loggingProvider.add(logger);
 		}
 
+		List<Double> preference = new ArrayList<Double>() {{
+			add(1.0);
+			add(2.0);
+			add(3.0);
+			add(4.0);
+			add(5.0);
+			add(6.0);
+			add(7.0);
+			add(8.0);
+		}};
+
+		Random r = new Random();
+		double[] priceWeights = new double[926];
+		double[] preferenceWeights = new double[926];
+		double[] queueWeights = new double[926];
+		for (int p=0;p<926;p++){
+			priceWeights[p] = (r.nextGaussian()*2.291173+6.772727)/10;
+			preferenceWeights[p] = (r.nextGaussian()*2.041198+7.204545)/10;
+			queueWeights[p] = (r.nextGaussian()*2.697093+6.568182)/10;
+		}
+
 		for (int sim = 0; sim < Configuration.numSimulations; sim++) {
 
 			System.out.println("Simulation " + (sim + 1));
@@ -140,20 +161,26 @@ public class IEPOSExperiment {
 			 */
 			Function<Integer, Agent> createAgent = agentIdx -> {
 
-				List<Plan<Vector>> possiblePlans = config.getDataset(Configuration.dataset)
-						.getPlans(Configuration.mapping.get(agentIdx));
-				AgentLoggingProvider<ModifiableIeposAgent<Vector>> agentLP = loggingProvider
-						.getAgentLoggingProvider(agentIdx, simulationId);
+				List<Plan<Vector>> possiblePlans = config.getDataset(Configuration.dataset).getPlans(Configuration.mapping.get(agentIdx));
+				AgentLoggingProvider<ModifiableIeposAgent<Vector>> agentLP = loggingProvider.getAgentLoggingProvider(agentIdx, simulationId);
+				ModifiableIeposAgent<Vector> newAgent = new ModifiableIeposAgent<Vector>(config, possiblePlans, agentLP);
 
-				ModifiableIeposAgent<Vector> newAgent = new ModifiableIeposAgent<Vector>(config, possiblePlans,
-						agentLP);
+				double[] preferenceArray = new double[8];
+				int k =0;
+				Collections.shuffle(preference);
+				for (Double aDouble : preference) {
+					preferenceArray[k] = aDouble;
+					k++;
+				}
 
 				newAgent.setUnfairnessWeight(Double.parseDouble(config.weights[0]));
 				newAgent.setLocalCostWeight(Double.parseDouble(config.weights[1]));
-				newAgent.setPriceWeight(Double.parseDouble(config.weights[2]));
-				newAgent.setPreferenceWeight(Double.parseDouble(config.weights[3]));
-				newAgent.setQueueWeight(Double.parseDouble(config.weights[4]));
-				newAgent.setIncentiveRate(Double.parseDouble(config.weights[5]));
+				newAgent.setIncentiveRate(Double.parseDouble(config.weights[2]));
+
+				newAgent.setPriceWeight(priceWeights[agentIdx]);
+				newAgent.setPreferenceWeight(preferenceWeights[agentIdx]);
+				newAgent.setQueueWeight(queueWeights[agentIdx]);
+				newAgent.setPreference(preferenceArray);
 				newAgent.setPlanSelector(planSelector);
 				return newAgent;
 
