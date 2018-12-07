@@ -35,7 +35,7 @@ import treestructure.ModifiableTreeArchitecture;
 /**
  * 
  * 
- * @author Jovan N., Thomas Asikis
+ * @author farzam
  *
  */
 public class IEPOSExperiment {

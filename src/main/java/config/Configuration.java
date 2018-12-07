@@ -71,7 +71,7 @@ import util.Helper;
 /**
  * Class that keeps all global parameters for IEPOS run.
  * 
- * @author Jovan N.
+ * @author farzam
  */
 public class Configuration {
 
@@ -638,7 +638,8 @@ public class Configuration {
 
 	public static boolean prepareGoalSignal(Properties argMap) {
 
-		boolean forLocal = Configuration.localCostFunc instanceof HasGoal;
+//		boolean forLocal = Configuration.localCostFunc instanceof HasGoal;
+		boolean forLocal = true;
 		boolean forGlobal = Configuration.globalCostFunc instanceof HasGoal;
 
 		if (!forLocal && !forGlobal) {

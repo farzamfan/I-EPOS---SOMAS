@@ -26,7 +26,7 @@ import protopeer.measurement.MeasurementLog;
  *
  * @param <V>
  */
-public class SelectedPlanLogger<V extends DataType<V>> extends AgentLogger<Agent<V>> {
+public class  SelectedPlanLogger<V extends DataType<V>> extends AgentLogger<Agent<V>> {
 	
 	private String 				filepath;
 	private int					totalNumAgents;

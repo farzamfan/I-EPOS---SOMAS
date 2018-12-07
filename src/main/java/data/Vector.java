@@ -35,7 +35,7 @@ import config.Configuration;
 
 /**
  *
- * @author Peter P. & Jovan N.
+ * @author farzam
  */
 public class Vector implements DataType<Vector> {
 

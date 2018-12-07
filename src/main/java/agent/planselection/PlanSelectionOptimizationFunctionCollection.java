@@ -10,7 +10,7 @@ import org.apache.commons.math3.exception.NotANumberException;
 /**
  * Contains collection of PlanGenerator Selection Optimization Functions
  * 
- * @author jovan
+ * @author farzam
  *
  */
 public class PlanSelectionOptimizationFunctionCollection {
@@ -105,7 +105,7 @@ public class PlanSelectionOptimizationFunctionCollection {
 //        System.out.println("LC:"+localcost+" IS:"+incentiveSignal+" pref:"+pref+" w_m,w_t,w_p,w_t,w_i:"+w_m+" "+w_t+" "+w_p+" "+w_i);
 //        System.out.println(w_m * (localcost - w_i*incentiveSignal*localcost)/(2*localcost) - w_p * (pref) + w_t * (0));
 //        System.out.println("--");
-	    return w_m * (localcost - w_i*incentiveSignal*localcost)/2 - w_p * (pref) + w_t * (queue);
+	    return w_m * (localcost - w_i*incentiveSignal*localcost)/2*localcost - w_p * (pref) + w_t * (queue);
 	}
 
 	public static PlanSelectionOptimizationFunction incentiveFunction = (HashMap<OptimizationFactor, Object> map) -> {

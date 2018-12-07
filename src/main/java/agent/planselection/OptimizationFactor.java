@@ -5,7 +5,7 @@ package agent.planselection;
  * These enumeration types are used only as keys to hashmap when passing all arguments
  * to optimization function
  * 
- * @author jovan
+ * @author farzam
  *
  */
 public enum OptimizationFactor {
